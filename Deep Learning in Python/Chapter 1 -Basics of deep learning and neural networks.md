@@ -1,6 +1,6 @@
 # Deep Learning Exercise
 
-## chapter 1
+## chapter 1-1
 
  Coding the forward propagation algorithm
 In this exercise, you'll write code to do forward propagation (prediction) for your first neural network:
