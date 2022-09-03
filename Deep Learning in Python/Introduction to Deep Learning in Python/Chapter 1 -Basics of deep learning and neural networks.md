@@ -1,5 +1,3 @@
-# Deep Learning Exercise
-
 ## chapter 1-1
 
  Coding the forward propagation algorithm
