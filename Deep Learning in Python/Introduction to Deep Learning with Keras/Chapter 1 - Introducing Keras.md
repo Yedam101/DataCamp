@@ -115,5 +115,5 @@ model.summary()
 eighty_min_orbit = model.predict(np.arange(-40, 41))
 
 # Plot the eighty minute orbit 
-plot_orbit(eighty_min_orbit)
+plot_orbit(eighty_min_orbit)       
 ```
