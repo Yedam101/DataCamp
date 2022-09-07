@@ -41,110 +41,90 @@ model.compile(optimizer='adam', loss=mean_absolute_error)
 Fit the model and evaluate
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
+# Fit the model to the games_season dataset
+model.fit([games_season['team_1'], games_season['team_2'], games_season['home']],
+          games_season['score_diff'],
+          epochs=1,
+          verbose=True,
+          validation_split=.10,
+          batch_size=2048)
 
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
-
-# Print accuracy
-print('Accuracy:', accuracy)
+# Evaluate the model on the games_tourney dataset
+print(model.evaluate([games_tourney['team_1'], games_tourney['team_2'], games_tourney['home']],
+               games_tourney['score_diff'], verbose=False))
 
 ```
 
-## chapter 3-1
+## chapter 3-4
 
-Is this dollar bill fake ?
+Plotting models
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
+# Imports
+import matplotlib.pyplot as plt
+from tensorflow.keras.utils import plot_model
 
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
+# Plot the model
+plot_model(model, to_file='model.png')
 
-# Print accuracy
-print('Accuracy:', accuracy)
+# Display the image
+data = plt.imread('model.png')
+plt.imshow(data)
+plt.show()
 
 ```
 
-## chapter 3-1
+## chapter 3-5
 
-Is this dollar bill fake ?
+Add the model predictions to the tournament data
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
-
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
-
-# Print accuracy
-print('Accuracy:', accuracy)
+# Predict
+games_tourney['pred'] = model.predict([games_tourney['team_1'],
+                                             games_tourney['team_2'],
+                                             games_tourney['home']])
 
 ```
 
-## chapter 3-1
+## chapter 3-6
 
-Is this dollar bill fake ?
+Create an input layer with multiple columns
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
+# Create an input layer with 3 columns
+input_tensor = Input((3,))
 
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
+# Pass it to a Dense layer with 1 unit
+output_tensor = Dense(1)(input_tensor)
 
-# Print accuracy
-print('Accuracy:', accuracy)
+# Create a model
+model = model(input_tensor, output_tensor)
+
+# Compile the model
+model.compile(optimizer='adam', loss='mean_absolute_error')
 
 ```
 
-## chapter 3-1
+## chapter 3-7
 
-Is this dollar bill fake ?
+Fit the model
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
-
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
-
-# Print accuracy
-print('Accuracy:', accuracy)
+# Fit the model
+model.fit(games_tourney_train[['home', 'seed_diff', 'pred']],
+          games_tourney_train['score_diff'],
+          epochs=1,
+          verbose=True)
 
 ```
 
-## chapter 3-1
+## chapter 3-8
 
-Is this dollar bill fake ?
+Evaluate the model
 
 ```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
-
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
-
-# Print accuracy
-print('Accuracy:', accuracy)
+# Evaluate the model on the games_tourney_test dataset
+print(model.evaluate(games_tourney_test[['home', 'seed_diff', 'prediction']],
+          games_tourney_test['score_diff'], verbose=False))
 
 ```
-
-## chapter 3-1
-
-Is this dollar bill fake ?
-
-```python
-# Train your model for 20 epochs
-model.fit(X_train, y_train, epochs = 20)
-
-# Evaluate your model accuracy on the test set
-accuracy = model.evaluate(X_test, y_test)[1]
-
-# Print accuracy
-print('Accuracy:', accuracy)
-
-```
-
