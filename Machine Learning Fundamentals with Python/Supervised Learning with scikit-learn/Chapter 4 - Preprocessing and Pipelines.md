@@ -1,238 +1,235 @@
 ## chapter 4-1
 
-It's a flow of tensors
+Creating dummy variables
 
 ```python
-# Import tensorflow.keras backend
-import tensorflow.keras.backend as K
+# Create music_dummies
+music_dummies = pd.get_dummies(music_df, drop_first=True)
 
-# Input tensor from the 1st layer of the model
-inp = model.layers[0].input
-
-# Output tensor from the 1st layer of the model
-out = model.layers[0].output
-
-# Define a function from inputs to outputs
-inp_to_out = K.function([inp], [out])
-
-# Print the results of passing X_test through the 1st layer
-print(inp_to_out([X_test]))
+# Print the new DataFrame's shape
+print("Shape of music_dummies: {}".format(music_dummies.shape))
 
 ```
 
 ## chapter 4-2
 
-Neural separation
+Regression with categorical features
 
 ```python
-for i in range(0, 21):
-  	# Train model for 1 epoch
-    h = model.fit(X_train, y_train, batch_size = 16, epochs = 1, verbose = 0)
-    if i%4==0: 
-      # Get the output of the first layer
-      layer_output = inp_to_out([X_test])[0]
-      
-      # Evaluate model accuracy for this epoch
-      test_accuracy = model.evaluate(X_test, y_test)[1] 
-      
-      # Plot 1st vs 2nd neuron output
-      plot()
+# Create X and y
+X = music_dummies.drop("popularity", axis=1)
+y = music_dummies.popularity
+
+# Instantiate a ridge model
+ridge = Ridge(alpha=0.2)
+
+# Perform cross-validation
+scores = cross_val_score(ridge, X, y, cv=kf, scoring="neg_mean_squared_error")
+
+# Calculate RMSE
+rmse = np.sqrt(-scores)
+print("Average RMSE: {}".format(np.mean(rmse)))
+print("Standard Deviation of the target array: {}".format(np.std(y)))
 
 ```
 
 ## chapter 4-3
 
-Building an autoencoder
+Dropping missing data
 
 ```python
-# Start with a sequential model
-autoencoder = Sequential()
+# Print missing values for each column
+print(music_df.isna().sum().sort_values())
 
-# Add a dense layer with input the original image pixels and neurons the encoded representation
-autoencoder.add(Dense(32, input_shape=(784, ), activation="relu"))
+# Remove values where less than 5% are missing
+music_df = music_df.dropna(subset=["genre", "popularity", "loudness", "liveness", "tempo"])
 
-# Add an output layer with as many neurons as the orginal image pixels
-autoencoder.add(Dense(784, activation = "sigmoid"))
+# Convert genre to a binary feature
+music_df["genre"] = np.where(music_df["genre"] == "Rock", 1, 0)
 
-# Compile your model with adadelta
-autoencoder.compile(optimizer = 'adadelta', loss = 'binary_crossentropy')
-
-# Summarize your model structure
-autoencoder.summary()
+print(music_df.isna().sum().sort_values())
+print("Shape of the `music_df`: {}".format(music_df.shape))
 
 ```
 
 ## chapter 4-4
 
-De-noising like an autoencoder
+Pipeline for song genre prediction: I
 
 ```python
-# Build your encoder by using the first layer of your autoencoder
-encoder = Sequential()
-encoder.add(autoencoder.layers[0])
+# Import modules
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline 
 
-# Encode the noisy images and show the encodings for your favorite number [0-9]
-encodings = encoder.predict(X_test_noise)
-show_encodings(encodings, number = 1)
+# Instantiate an imputer
+imputer = SimpleImputer()
 
-# Predict on the noisy images with your autoencoder
-decoded_imgs = autoencoder.predict(X_test_noise)
+# Instantiate a knn model
+knn = KNeighborsClassifier(n_neighbors=3)
 
-# Plot noisy vs decoded images
-compare_plot(X_test_noise, decoded_imgs)
-
+# Build steps for the pipeline
+steps = [("imputer", imputer), 
+         ("knn", knn)]
 ```
 
 ## chapter 4-5
 
-Building a CNN model
+Pipeline for song genre prediction: II
 
 ```python
-# Import the Conv2D and Flatten layers and instantiate model
-from tensorflow.keras.layers import Conv2D, Flatten
-model = Sequential()
+steps = [("imputer", imp_mean),
+        ("knn", knn)]
 
-# Add a convolutional layer of 32 filters of size 3x3
-model.add(Conv2D(32, kernel_size = 3, input_shape = (28, 28, 1), activation = 'relu'))
+# Create the pipeline
+pipeline = Pipeline(steps)
 
-# Add a convolutional layer of 16 filters of size 3x3
-model.add(Conv2D(16, kernel_size = 3, activation = 'relu'))
+# Fit the pipeline to the training data
+pipeline.fit(X_train, y_train)
 
-# Flatten the previous layer output
-model.add(Flatten())
+# Make predictions on the test set
+y_pred = pipeline.predict(X_test)
 
-# Add as many outputs as classes with softmax activation
-model.add(Dense(10, activation = 'softmax'))
+# Print the confusion matrix
+print(confusion_matrix(y_test, y_pred))
 
 ```
 
 ## chapter 4-6
 
-Looking at convolutions
+Centering and scaling for regression
 
 ```python
-# Obtain a reference to the outputs of the first layer
-first_layer_output = model.layers[0].output
+# Import StandardScaler
+from sklearn.preprocessing import StandardScaler
 
-# Build a model using the model's input and the first layer output
-first_layer_model = Model(inputs = model.layers[0].input, outputs = first_layer_output)
+# Create pipeline steps
+steps = [("scaler", StandardScaler()),
+         ("lasso", Lasso(alpha=0.5))]
 
-# Use this model to predict on X_test
-activations = first_layer_model.predict(X_test)
+# Instantiate the pipeline
+pipeline = Pipeline(steps)
+pipeline.fit(X_train, y_train)
 
-# Plot the activations of first digit of X_test for the 15th filter
-axs[0].matshow(activations[0,:,:,14], cmap = 'viridis')
-
-# Do the same but for the 18th filter now
-axs[1].matshow(activations[0,:,:,14], cmap = 'viridis')
-plt.show()
+# Calculate and print R-squared
+print(pipeline.score(X_test, y_test))
 
 ```
 
 ## chapter 4-7
 
-Preparing your input image
+Centering and scaling for classification
 
 ```python
-# Import image and preprocess_input
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.resnet50 import preprocess_input
+# Build the steps
+steps = [("scaler", StandardScaler()),
+         ("logreg", LogisticRegression())]
+pipeline = Pipeline(steps)
 
-# Load the image with the right target size for your model
-img = image.load_img(img_path, target_size=(224, 224))
+# Create the parameter space
+parameters = {"logreg__C": np.linspace(0.001, 1.0, 20)}
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, 
+                                                    random_state=21)
 
-# Turn it into an array
-img_array = image.img_to_array(img)
+# Instantiate the grid search object
+cv = GridSearchCV(pipeline, param_grid=parameters)
 
-# Expand the dimensions of the image, this is so that it fits the expected model input format
-img_expanded = np.expand_dims(img_array, axis = 0)
-
-# Pre-process the img in the same way original images were
-img_ready = preprocess_input(img_expanded)
+# Fit to the training data
+cv.fit(X_train, y_train)
+print(cv.best_score_, "\n", cv.best_params_)
 
 ```
 
 ## chapter 4-8
 
-Using a real world model
+Visualizing regression model performance
 
 ```python
-# Instantiate a ResNet50 model with 'imagenet' weights
-model = ResNet50(weights='imagenet')
+models = {"Linear Regression": LinearRegression(), "Ridge": Ridge(alpha=0.1), "Lasso": Lasso(alpha=0.1)}
+results = []
 
-# Predict with ResNet50 on your already processed img
-preds = model.predict(img_ready)
+# Loop through the models' values
+for model in models.values():
+  kf = KFold(n_splits=6, random_state=42, shuffle=True)
+  
+  # Perform cross-validation
+  cv_scores = cross_val_score(model, X_train, y_train, cv=kf)
+  
+  # Append the results
+  results.append(cv_scores)
 
-# Decode the first 3 predictions
-print('Predicted:', decode_predictions(preds, top=3)[0])
+# Create a box plot of the results
+plt.boxplot(results, labels=models.keys())
+plt.show()
 
 ```
 
 ## chapter 4-9
 
-Text prediction with LSTMs
+Predicting on the test set
 
 ```python
-# Split text into an array of words 
-words = text.split()
+# Import mean_squared_error
+from sklearn.metrics import mean_squared_error
 
-# Make sentences of 4 words each, moving one word at a time
-sentences = []
-for i in range(4, len(words)):
-  sentences.append(' '.join(words[i-4:i]))
-
-# Instantiate a Tokenizer, then fit it on the sentences
-tokenizer = Tokenizer()
-tokenizer.fit_on_texts(sentences)
-
-# Turn sentences into a sequence of numbers
-sequences = tokenizer.texts_to_sequences(sentences)
-print("Sentences: \n {} \n Sequences: \n {}".format(sentences[:5],sequences[:5]))
+for name, model in models.items():
+  
+  # Fit the model to the training data
+  model.fit(X_train_scaled, y_train)
+  
+  # Make predictions on the test set
+  y_pred = model.predict(X_test_scaled)
+  
+  # Calculate the test_rmse
+  test_rmse = mean_squared_error(y_test, y_pred, squared=False)
+  print("{} Test Set RMSE: {}".format(name, test_rmse))
 
 ```
 
 ## chapter 4-10
 
-Build your LSTM model
+Visualizing classification model performance
 
 ```python
-# Import the Embedding, LSTM and Dense layer
-from tensorflow.keras.layers import Embedding, LSTM, Dense
+# Create models dictionary
+models = {"Logistic Regression": LogisticRegression(), "KNN": KNeighborsClassifier(), "Decision Tree Classifier": DecisionTreeClassifier()}
+results = []
 
-model = Sequential()
-
-# Add an Embedding layer with the right parameters
-model.add(Embedding(input_dim = 44, input_length = 3, output_dim = 8))
-
-# Add a 32 unit LSTM layer
-model.add(LSTM(32))
-
-# Add a hidden Dense layer of 32 units and an output layer of vocab_size with softmax
-model.add(Dense(32, activation='relu'))
-model.add(Dense(32, activation='softmax'))
-model.summary()
+# Loop through the models' values
+for model in models.values():
+  
+  # Instantiate a KFold object
+  kf = KFold(n_splits=6, random_state=12, shuffle=True)
+  
+  # Perform cross-validation
+  cv_results = cross_val_score(model, X_train_scaled, y_train, cv=kf)
+  results.append(cv_results)
+plt.boxplot(results, labels=models.keys())
+plt.show()
 
 ```
 
 ## chapter 4-11
 
-Decode your predictions
+Pipeline for predicting song popularity
 
 ```python
-def predict_text(test_text, model = model):
-  if len(test_text.split()) != 3:
-    print('Text input should be 3 words!')
-    return False
-  
-  # Turn the test_text into a sequence of numbers
-  test_seq = tokenizer.texts_to_sequences([test_text])
-  test_seq = np.array(test_seq)
-  
-  # Use the model passed as a parameter to predict the next word
-  pred = model.predict(test_seq).argmax(axis = 1)[0]
-  
-  # Return the word that maps to the prediction
-  return tokenizer.index_word[pred]
+# Create steps
+steps = [("imp_mean", SimpleImputer()), 
+         ("scaler", StandardScaler()), 
+         ("logreg", LogisticRegression())]
+
+# Set up pipeline
+pipeline = Pipeline(steps)
+params = {"logreg__solver": ["newton-cg", "saga", "lbfgs"],
+         "logreg__C": np.linspace(0.001, 1.0, 10)}
+
+# Create the GridSearchCV object
+tuning = GridSearchCV(pipeline, param_grid=params)
+tuning.fit(X_train, y_train)
+y_pred = tuning.predict(X_test)
+
+# Compute and print performance
+print("Tuned Logistic Regression Parameters: {}, Accuracy: {}".format(tuning.best_params_, tuning.score(X_test, y_test)))
   
 ```
 
