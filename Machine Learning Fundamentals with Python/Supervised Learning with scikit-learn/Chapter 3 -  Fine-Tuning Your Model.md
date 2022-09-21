@@ -1,130 +1,128 @@
-## chapter 3-1
-
-Make an input layer for home vs. away
-
-```python
-# Create an Input for each team
-team_in_1 = Input(shape=(1,), name='Team-1-In')
-team_in_2 = Input(shape=(1,), name='Team-2-In')
-
-# Create an input for home vs away
-home_in = Input(shape=(1,), name='Home-In')
-
-# Lookup the team inputs in the team strength model
-team_1_strength = team_strength_model(team_in_1)
-team_2_strength = team_strength_model(team_in_2)
-
-# Combine the team strengths with the home input using a Concatenate layer, then add a Dense layer
-out = Concatenate()([team_1_strength, team_2_strength, home_in])
-out = Dense(1)(out)
-
-```
 
 ## chapter 3-2
 
-Make a model and compile it
+Assessing a diabetes prediction classifier
 
 ```python
-# Import the model class
-from tensorflow.keras.models import Model
+# Import confusion matrix
+from sklearn.metrics import classification_report, confusion_matrix
 
-# Make a Model
-model = Model([team_in_1, team_in_2, home_in], out)
+knn = KNeighborsClassifier(n_neighbors=6)
 
-# Compile the model
-model.compile(optimizer='adam', loss=mean_absolute_error)
+# Fit the model to the training data
+knn.fit(X_train, y_train)
+
+# Predict the labels of the test data: y_pred
+y_pred = knn.predict(X_test)
+
+# Generate the confusion matrix and classification report
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 
 ```
 
 ## chapter 3-3
 
-Fit the model and evaluate
+Building a logistic regression model
 
 ```python
-# Fit the model to the games_season dataset
-model.fit([games_season['team_1'], games_season['team_2'], games_season['home']],
-          games_season['score_diff'],
-          epochs=1,
-          verbose=True,
-          validation_split=.10,
-          batch_size=2048)
+# Import LogisticRegression
+from sklearn.linear_model import LogisticRegression
 
-# Evaluate the model on the games_tourney dataset
-print(model.evaluate([games_tourney['team_1'], games_tourney['team_2'], games_tourney['home']],
-               games_tourney['score_diff'], verbose=False))
+# Instantiate the model
+logreg = LogisticRegression()
+
+# Fit the model
+logreg.fit(X_train, y_train)
+
+# Predict probabilities
+y_pred_probs = logreg.predict(X_test)[:, 1]
+
+print(y_pred_probs[:10])
 
 ```
 
 ## chapter 3-4
 
-Plotting models
+The ROC curve
 
 ```python
-# Imports
-import matplotlib.pyplot as plt
-from tensorflow.keras.utils import plot_model
+# Import roc_curve
+from sklearn.metrics import roc_curve
 
-# Plot the model
-plot_model(model, to_file='model.png')
+# Generate ROC curve values: fpr, tpr, thresholds
+fpr, tpr, thresholds = roc_curve(y_test, y_pred_probs)
 
-# Display the image
-data = plt.imread('model.png')
-plt.imshow(data)
+plt.plot([0, 1], [0, 1], 'k--')
+
+# Plot tpr against fpr
+plt.plot(fpr, tpr)
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve for Diabetes Prediction')
 plt.show()
 
 ```
 
 ## chapter 3-5
 
-Add the model predictions to the tournament data
+ROC AUC
 
 ```python
-# Predict
-games_tourney['pred'] = model.predict([games_tourney['team_1'],
-                                             games_tourney['team_2'],
-                                             games_tourney['home']])
+# Import roc_auc_score
+from sklearn.metrics import roc_auc_score
+
+# Calculate roc_auc_score
+print(roc_auc_score(y_test, y_pred_probs))
+
+# Calculate the confusion matrix
+print(confusion_matrix(y_test, y_pred))
+
+# Calculate the classification report
+print(classification_report(y_test, y_pred))
 
 ```
 
 ## chapter 3-6
 
-Create an input layer with multiple columns
+Hyperparameter tuning with GridSearchCV
 
 ```python
-# Create an input layer with 3 columns
-input_tensor = Input((3,))
+# Import GridSearchCV
+from sklearn.model_selection import GridSearchCV
 
-# Pass it to a Dense layer with 1 unit
-output_tensor = Dense(1)(input_tensor)
+# Set up the parameter grid
+param_grid = {"alpha": np.linspace(0.00001, 1, 20)}
 
-# Create a model
-model = model(input_tensor, output_tensor)
+# Instantiate lasso_cv
+lasso_cv = GridSearchCV(lasso, param_grid, cv=kf)
 
-# Compile the model
-model.compile(optimizer='adam', loss='mean_absolute_error')
+# Fit to the training data
+lasso_cv.fit(X_train, y_train)
+print("Tuned lasso paramaters: {}".format(lasso_cv.best_params_))
+print("Tuned lasso score: {}".format(lasso_cv.best_score_))
 
 ```
 
 ## chapter 3-7
 
-Fit the model
+Hyperparameter tuning with RandomizedSearchCV
 
 ```python
-# Fit the model
-model.fit(games_tourney_train[['home', 'seed_diff', 'pred']],
-          games_tourney_train['score_diff'],
-          epochs=1,
-          verbose=True)
+# Create the parameter space
+params = {"penalty": ["l1", "l2"],
+         "tol": np.linspace(0.0001, 1.0, 50),
+         "C": np.linspace(0.1, 1.0, 50),
+         "class_weight": ["balanced", {0:0.8, 1:0.2}]}
 
-```
+# Instantiate the RandomizedSearchCV object
+logreg_cv = RandomizedSearchCV(logreg, params, cv=kf)
 
-## chapter 3-8
+# Fit the data to the model
+logreg_cv.fit(X_train, y_train)
 
-Evaluate the model
-
-```python
-# Evaluate the model on the games_tourney_test dataset
-print(model.evaluate(games_tourney_test[['home', 'seed_diff', 'prediction']],
-          games_tourney_test['score_diff'], verbose=False))
+# Print the tuned parameters and score
+print("Tuned Logistic Regression Parameters: {}".format(logreg_cv.best_params_))
+print("Tuned Logistic Regression Best Accuracy Score: {}".format(logreg_cv.best_score_))
 
 ```
