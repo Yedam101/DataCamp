@@ -1,189 +1,147 @@
 ## chapter 2-1
 
-Creating features
+Hierarchical clustering of the grain data
 
 ```python
-import numpy as np
-
-# Create X from the radio column's values
-X = sales_df["radio"].values
-
-# Create y from the sales column's values
-y = sales_df["sales"].values
-
-# Reshape X
-X = X.reshape(-1,1)
-
-# Check the shape of the features and targets
-print(X.shape, y.shape)
-
-```
-
-## chapter 2-2
-
-Building a linear regression model
-
-```python
-# Import LinearRegression
-from sklearn.linear_model import LinearRegression
-
-# Create the model
-reg = LinearRegression()
-
-# Fit the model to the data
-reg.fit(X, y)
-
-# Make predictions
-predictions = reg.predict(X)
-
-print(predictions[:5])
-
-```
-
-## chapter 2-3
-
-Visualizing a linear regression model
-
-```python
-# Import matplotlib.pyplot
+# Perform the necessary imports
+from scipy.cluster.hierarchy import linkage, dendrogram
 import matplotlib.pyplot as plt
 
-# Create scatter plot
-plt.scatter(X, y, color="b")
+# Calculate the linkage: mergings
+mergings = linkage(samples, method='complete')
 
-# Create line plot
-plt.plot(X, predictions, color="r")
-plt.xlabel("Radio Expenditure ($)")
-plt.ylabel("Sales ($)")
-
-# Display the plot
+# Plot the dendrogram, using varieties as labels
+dendrogram(mergings,
+           labels=varieties,
+           leaf_rotation=90,
+           leaf_font_size=6,
+)
 plt.show()
 
 ```
+image.png
+<br><br/>
+
+## chapter 2-2
+
+Hierarchies of stocks
+
+```python
+# Import normalize
+from sklearn.preprocessing import normalize
+
+# Normalize the movements: normalized_movements
+normalized_movements = normalize(movements)
+
+# Calculate the linkage: mergings
+mergings = linkage(normalized_movements, method='complete')
+
+# Plot the dendrogram
+dendrogram(mergings, labels=companies, leaf_rotation=90, leaf_font_size=6)
+plt.show()
+
+```
+image.png
+<br><br/>
+
+## chapter 2-3
+
+Different linkage, different hierarchical clustering!
+
+```python
+# Perform the necessary imports
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import linkage, dendrogram
+
+# Calculate the linkage: mergings
+mergings = linkage(samples, method='single')
+
+# Plot the dendrogram
+dendrogram(mergings, labels=country_names, leaf_rotation=90, leaf_font_size=6)
+plt.show()
+
+```
+image.png
+<br><br/>
 
 ## chapter 2-4
 
-Fit and predict for regression
+Extracting the cluster labels
 
 ```python
-# Create X and y arrays
-X = sales_df.drop("sales", axis=1).values
-y = sales_df["sales"].values
+# Perform the necessary imports
+import pandas as pd
+from scipy.cluster.hierarchy import fcluster
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Use fcluster to extract labels: labels
+labels = fcluster(mergings, 6, criterion='distance')
 
-# Instantiate the model
-reg = LinearRegression()
+# Create a DataFrame with labels and varieties as columns: df
+df = pd.DataFrame({'labels': labels, 'varieties': varieties})
 
-# Fit the model to the data
-reg.fit(X_train, y_train)
+# Create crosstab: ct
+ct = pd.crosstab(df['labels'], df['varieties'])
 
-# Make predictions
-y_pred = reg.predict(X_test)
-print("Predictions: {}, Actual Values: {}".format(y_pred[:2], y_test[:2]))
+# Display ct
+print(ct)
 
 ```
 
 ## chapter 2-5
 
-Regression performance
+t-SNE visualization of grain dataset
 
 ```python
-# Import mean_squared_error
-from sklearn.metrics import mean_squared_error
+# Import TSNE
+from sklearn.manifold import TSNE
 
-# Compute R-squared
-r_squared = reg.score(X_test, y_test)
+# Create a TSNE instance: model
+model = TSNE(learning_rate=200)
 
-# Compute RMSE
-rmse = mean_squared_error(y_test, y_pred, squared=False)
+# Apply fit_transform to samples: tsne_features
+tsne_features = model.fit_transform(samples)
 
-# Print the metrics
-print("R^2: {}".format(r_squared))
-print("RMSE: {}".format(rmse))
+# Select the 0th feature: xs
+xs = tsne_features[:,0]
 
-```
+# Select the 1st feature: ys
+ys = tsne_features[:,1]
 
-## chapter 2-6
-
-Cross-validation for R-squared
-
-```python
-# Import the necessary modules
-from sklearn.model_selection import cross_val_score, KFold
-
-# Create a KFold object
-kf = KFold(n_splits=6, shuffle=True, random_state=5)
-
-reg = LinearRegression()
-
-# Compute 6-fold cross-validation scores
-cv_scores = cross_val_score(reg, X, y, cv=kf)
-
-# Print scores
-print(cv_scores)
-
-```
-
-## chapter 2-7
-
-Analyzing cross-validation metrics
-
-```python
-# Print the mean
-print(np.mean(cv_results))
-
-# Print the standard deviation
-print(np.std(cv_results))
-
-# Print the 95% confidence interval
-print(np.quantile(cv_results, [0.025, 0.975]))
-
-```
-
-## chapter 2-8
-
-Regularized regression: Ridge
-
-```python
-# Import Ridge
-from sklearn.linear_model import Ridge
-alphas = [0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
-ridge_scores = []
-for alpha in alphas:
-  
-  # Create a Ridge regression model
-  ridge = Ridge(alpha=alpha)
-  
-  # Fit the data
-  ridge.fit(X_train, y_train)
-  
-  # Obtain R-squared
-  score = ridge.score(X_test, y_test)
-  ridge_scores.append(score)
-print(ridge_scores)
-
-```
-
-## chapter 2-9
-
-Lasso regression for feature importances
-
-```python
-# Import Lasso
-from sklearn.linear_model import Lasso
-
-# Instantiate a lasso regression model
-lasso = Lasso(alpha=0.3)
-
-# Fit the model to the data
-lasso.fit(X, y)
-
-# Compute and print the coefficients
-lasso_coef = lasso.fit(X, y).coef_
-print(lasso_coef)
-plt.bar(sales_columns, lasso_coef)
-plt.xticks(rotation=45)
+# Scatter plot, coloring by variety_numbers
+plt.scatter(xs, ys, c=variety_numbers)
 plt.show()
 
 ```
+image.png
+<br><br/>
+
+## chapter 2-6
+
+A t-SNE map of the stock market
+
+```python
+# Import TSNE
+from sklearn.manifold import TSNE
+
+# Create a TSNE instance: model
+model = TSNE(learning_rate=50)
+
+# Apply fit_transform to normalized_movements: tsne_features
+tsne_features = model.fit_transform(normalized_movements)
+
+# Select the 0th feature: xs
+xs = tsne_features[:,0]
+
+# Select the 1th feature: ys
+ys = tsne_features[:,1]
+
+# Scatter plot
+plt.scatter(xs, ys, alpha=0.5)
+
+# Annotate the points
+for x, y, company in zip(xs, ys, companies):
+    plt.annotate(company, (x, y), fontsize=5, alpha=0.75)
+plt.show()
+
+```
+image.png
