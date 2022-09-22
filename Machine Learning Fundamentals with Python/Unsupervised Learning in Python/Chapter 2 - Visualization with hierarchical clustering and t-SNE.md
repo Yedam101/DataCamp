@@ -19,7 +19,7 @@ dendrogram(mergings,
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/191679128-73a10614-eef2-49b8-a908-b8d6315a4966.png)
 <br><br/>
 
 ## chapter 2-2
@@ -41,7 +41,7 @@ dendrogram(mergings, labels=companies, leaf_rotation=90, leaf_font_size=6)
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/191679190-fd03553c-e756-4989-a5ba-5ac98b16825f.png)
 <br><br/>
 
 ## chapter 2-3
@@ -61,7 +61,7 @@ dendrogram(mergings, labels=country_names, leaf_rotation=90, leaf_font_size=6)
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/191679234-d84d2e84-3ca8-4634-a17d-05a9d3327f28.png)
 <br><br/>
 
 ## chapter 2-4
@@ -112,7 +112,7 @@ plt.scatter(xs, ys, c=variety_numbers)
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/191679381-4968d798-e12f-4f33-814b-333f1f62588a.png)
 <br><br/>
 
 ## chapter 2-6
@@ -144,4 +144,4 @@ for x, y, company in zip(xs, ys, companies):
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/191679500-b80ef698-6b0a-4348-beba-7129f35926cc.png)
