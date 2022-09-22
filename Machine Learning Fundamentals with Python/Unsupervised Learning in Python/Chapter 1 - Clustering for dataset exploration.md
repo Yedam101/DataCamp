@@ -106,94 +106,88 @@ print(ct)
 
 ## chapter 1-6
 
-Overfitting and underfitting
+Scaling fish data for clustering
 
 ```python
-# Create neighbors
-neighbors = np.arange(1, 13)
-train_accuracies = {}
-test_accuracies = {}
+# Perform the necessary imports
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
-for neighbor in neighbors:
-  
-	# Set up a KNN Classifier
-	knn = KNeighborsClassifier(n_neighbors=neighbor)
-  
-	# Fit the model
-	knn.fit(X_train, y_train)
-  
-	# Compute accuracy
-	train_accuracies[neighbor] = knn.score(X_train, y_train)
-	test_accuracies[neighbor] = knn.score(X_test, y_test)
+# Create scaler: scaler
+scaler = StandardScaler()
 
-print(neighbors, '\n', train_accuracies, '\n', test_accuracies)
+# Create KMeans instance: kmeans
+kmeans = KMeans(n_clusters=4)
+
+# Create pipeline: pipeline
+pipeline = make_pipeline(scaler, kmeans)
 
 ```
 
 ## chapter 1-7
 
-Visualizing model complexity
+Clustering the fish data
 
 ```python
-# Add a title
-plt.title("KNN: Varying Number of Neighbors")
+# Import pandas
+import pandas as pd
 
-# Plot training accuracies
-plt.plot(neighbors, train_accuracies.values(),label="Training Accuracy")
+# Fit the pipeline to samples
+pipeline.fit(samples)
 
-# Plot test accuracies
-plt.plot(neighbors, test_accuracies.values(), label="Testing Accuracy")
+# Calculate the cluster labels: labels
+labels = pipeline.predict(samples)
 
-plt.legend()
-plt.xlabel("Number of Neighbors")
-plt.ylabel("Accuracy")
+# Create a DataFrame with labels and species as columns: df
+df = pd.DataFrame({'labels':labels, 'species':species})
 
-# Display the plot
-plt.show()
+# Create crosstab: ct
+ct = pd.crosstab(df['labels'], df['species'])
+
+# Display ct
+print(ct)
 
 ```
 
 ## chapter 1-8
 
-Evaluating the grain clustering
+Clustering stocks using KMeans
 
 ```python
-# Create a KMeans model with 3 clusters: model
-model = KMeans(n_clusters=3)
+# Import Normalizer
+from sklearn.preprocessing import Normalizer
 
-# Use fit_predict to fit model and obtain cluster labels: labels
-labels = model.fit_predict(samples)
+# Create a normalizer: normalizer
+normalizer = Normalizer()
 
-# Create a DataFrame with labels and varieties as columns: df
-df = pd.DataFrame({'labels': labels, 'varieties': varieties})
+# Create a KMeans model with 10 clusters: kmeans
+kmeans = KMeans(n_clusters=10)
 
-# Create crosstab: ct
-ct = pd.crosstab(df['labels'], df['varieties'])
+# Make a pipeline chaining normalizer and kmeans: pipeline
+pipeline = make_pipeline(normalizer, kmeans)
 
-# Display ct
-print(ct)
+# Fit pipeline to the daily price movements
+pipeline.fit(movements)
 
 ```
 
 ## chapter 1-9
 
-Evaluating the grain clustering
+Which stocks move together?
 
 ```python
-# Create a KMeans model with 3 clusters: model
-model = KMeans(n_clusters=3)
+# Import pandas
+import pandas as pd
 
-# Use fit_predict to fit model and obtain cluster labels: labels
-labels = model.fit_predict(samples)
+# Predict the cluster labels: labels
+labels = pipeline.predict(movements)
 
-# Create a DataFrame with labels and varieties as columns: df
-df = pd.DataFrame({'labels': labels, 'varieties': varieties})
+# Create a DataFrame aligning labels and companies: df
+df = pd.DataFrame({'labels': labels, 'companies': companies})
 
-# Create crosstab: ct
-ct = pd.crosstab(df['labels'], df['varieties'])
-
-# Display ct
-print(ct)
+# Display df sorted by cluster label
+print(df.sort_values('labels'))
 
 ```
 
