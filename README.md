@@ -9,4 +9,6 @@
 - ### [Machine Learning Fundamentals with Python](https://github.com/Yedam101/DataCamp/tree/master/Machine%20Learning%20Fundamentals%20with%20Python/Supervised%20Learning%20with%20scikit-learn)
     * [Supervised Learning with scikit-learn](https://github.com/Yedam101/DataCamp/tree/master/Machine%20Learning%20Fundamentals%20with%20Python/Supervised%20Learning%20with%20scikit-learn)
     * [Unsupervised Learning in Python](https://github.com/Yedam101/DataCamp/tree/master/Machine%20Learning%20Fundamentals%20with%20Python/Unsupervised%20Learning%20in%20Python)
-    
+
+- ### [Natural Language Processing in Python](https://github.com/Yedam101/DataCamp/tree/master/Natural%20Language%20Processing%20in%20Python)
+    * [Introduction to Natural Language Processing in Python](https://github.com/Yedam101/DataCamp/tree/master/Natural%20Language%20Processing%20in%20Python/1.%20Introduction%20to%20Natural%20Language%20Processing%20in%20Python)
