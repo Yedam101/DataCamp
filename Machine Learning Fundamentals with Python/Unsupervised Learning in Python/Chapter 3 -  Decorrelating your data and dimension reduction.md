@@ -26,7 +26,7 @@ correlation, pvalue = pearsonr(width, length)
 print(correlation)
 
 ```
-image
+![image](https://user-images.githubusercontent.com/109948144/191933801-5126beb6-e749-4e1e-93c7-6ca5e9227fe0.png)
 <br><br/>
 
 ## chapter 3-2
@@ -61,7 +61,7 @@ correlation, pvalue = pearsonr(xs, ys)
 print(correlation)
 
 ```
-image
+![image](https://user-images.githubusercontent.com/109948144/191933869-4acaa6c2-fd2f-4bca-961f-0eaa31e83e0f.png)
 <br><br/>
 
 ## chapter 3-4
@@ -92,7 +92,7 @@ plt.axis('equal')
 plt.show()
 
 ```
-image
+![image](https://user-images.githubusercontent.com/109948144/191933928-9a552bc1-c6b1-40f7-8b10-e0fb694b84f1.png)
 <br><br/>
 
 ## chapter 3-5
@@ -127,7 +127,7 @@ plt.xticks(features)
 plt.show()
 
 ```
-image
+![image](https://user-images.githubusercontent.com/109948144/191933972-9ff37ccd-51b0-45a0-ae98-e8edf2a5e617.png)
 <br><br/>
 
 ## chapter 3-6
