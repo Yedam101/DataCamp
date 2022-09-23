@@ -1,5 +1,3 @@
-아직 아무것도 안함. 4 듣기
-
 ## chapter 4-1
 
 Creating dummy variables
