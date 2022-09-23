@@ -1,128 +1,222 @@
 
+## chapter 3-1
+
+Correlated data in nature
+
+```python
+# Perform the necessary imports
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+
+# Assign the 0th column of grains: width
+width = grains[:,0]
+
+# Assign the 1st column of grains: length
+length = grains[:,1]
+
+# Scatter plot width vs length
+plt.scatter(width, length)
+plt.axis('equal')
+plt.show()
+
+# Calculate the Pearson correlation
+correlation, pvalue = pearsonr(width, length)
+
+# Display the correlation
+print(correlation)
+
+```
+image
+<br><br/>
+
 ## chapter 3-2
 
-Assessing a diabetes prediction classifier
+Decorrelating the grain measurements with PCA
 
 ```python
-# Import confusion matrix
-from sklearn.metrics import classification_report, confusion_matrix
+# Import PCA
+from sklearn.decomposition import PCA
 
-knn = KNeighborsClassifier(n_neighbors=6)
+# Create PCA instance: model
+model = PCA()
 
-# Fit the model to the training data
-knn.fit(X_train, y_train)
+# Apply the fit_transform method of model to grains: pca_features
+pca_features = model.fit_transform(grains)
 
-# Predict the labels of the test data: y_pred
-y_pred = knn.predict(X_test)
+# Assign 0th column of pca_features: xs
+xs = pca_features[:,0]
 
-# Generate the confusion matrix and classification report
-print(confusion_matrix(y_test, y_pred))
-print(classification_report(y_test, y_pred))
+# Assign 1st column of pca_features: ys
+ys = pca_features[:,1]
 
-```
+# Scatter plot xs vs ys
+plt.scatter(xs, ys)
+plt.axis('equal')
+plt.show()
 
-## chapter 3-3
+# Calculate the Pearson correlation of xs and ys
+correlation, pvalue = pearsonr(xs, ys)
 
-Building a logistic regression model
-
-```python
-# Import LogisticRegression
-from sklearn.linear_model import LogisticRegression
-
-# Instantiate the model
-logreg = LogisticRegression()
-
-# Fit the model
-logreg.fit(X_train, y_train)
-
-# Predict probabilities
-y_pred_probs = logreg.predict(X_test)[:, 1]
-
-print(y_pred_probs[:10])
+# Display the correlation
+print(correlation)
 
 ```
+image
+<br><br/>
 
 ## chapter 3-4
 
-The ROC curve
+The first principal component
 
 ```python
-# Import roc_curve
-from sklearn.metrics import roc_curve
+# Make a scatter plot of the untransformed points
+plt.scatter(grains[:,0], grains[:,1])
 
-# Generate ROC curve values: fpr, tpr, thresholds
-fpr, tpr, thresholds = roc_curve(y_test, y_pred_probs)
+# Create a PCA instance: model
+model = PCA()
 
-plt.plot([0, 1], [0, 1], 'k--')
+# Fit model to points
+model.fit(grains)
 
-# Plot tpr against fpr
-plt.plot(fpr, tpr)
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-plt.title('ROC Curve for Diabetes Prediction')
+# Get the mean of the grain samples: mean
+mean = model.mean_
+
+# Get the first principal component: first_pc
+first_pc = model.components_[0,:]
+
+# Plot first_pc as an arrow, starting ata mean
+plt.arrow(mean[0], mean[1], first_pc[0], first_pc[1], color='red', width=0.01)
+
+# Keep axes on same scale
+plt.axis('equal')
 plt.show()
 
 ```
+image
+<br><br/>
 
 ## chapter 3-5
 
-ROC AUC
+Variance of the PCA features
 
 ```python
-# Import roc_auc_score
-from sklearn.metrics import roc_auc_score
+# Perform the necessary imports
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+import matplotlib.pyplot as plt
 
-# Calculate roc_auc_score
-print(roc_auc_score(y_test, y_pred_probs))
+# Create scaler: scaler
+scaler = StandardScaler()
 
-# Calculate the confusion matrix
-print(confusion_matrix(y_test, y_pred))
+# Create a PCA instance: pca
+pca = PCA()
 
-# Calculate the classification report
-print(classification_report(y_test, y_pred))
+# Create pipeline: pipeline
+pipeline = make_pipeline(scaler, pca)
+
+# Fit the pipeline to 'samples'
+pipeline.fit(samples)
+
+# Plot the explained variances
+features = range(pca.n_components_)
+plt.bar(features, pca.explained_variance_)
+plt.xlabel('PCA feature')
+plt.ylabel('variance')
+plt.xticks(features)
+plt.show()
 
 ```
+image
+<br><br/>
 
 ## chapter 3-6
 
-Hyperparameter tuning with GridSearchCV
+Dimension reduction of the fish measurements
 
 ```python
 # Import GridSearchCV
-from sklearn.model_selection import GridSearchCV
+# Import PCA
+from sklearn.decomposition import PCA
 
-# Set up the parameter grid
-param_grid = {"alpha": np.linspace(0.00001, 1, 20)}
+# Create a PCA model with 2 components: pca
+pca = PCA(n_components=2)
 
-# Instantiate lasso_cv
-lasso_cv = GridSearchCV(lasso, param_grid, cv=kf)
+# Fit the PCA instance to the scaled samples
+pca.fit(scaled_samples)
 
-# Fit to the training data
-lasso_cv.fit(X_train, y_train)
-print("Tuned lasso paramaters: {}".format(lasso_cv.best_params_))
-print("Tuned lasso score: {}".format(lasso_cv.best_score_))
+# Transform the scaled samples: pca_features
+pca_features = pca.transform(scaled_samples)
+
+# Print the shape of pca_features
+print(pca_features.shape)
 
 ```
 
 ## chapter 3-7
 
-Hyperparameter tuning with RandomizedSearchCV
+A tf-idf word-frequency array
 
 ```python
-# Create the parameter space
-params = {"penalty": ["l1", "l2"],
-         "tol": np.linspace(0.0001, 1.0, 50),
-         "C": np.linspace(0.1, 1.0, 50),
-         "class_weight": ["balanced", {0:0.8, 1:0.2}]}
+# Import TfidfVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Instantiate the RandomizedSearchCV object
-logreg_cv = RandomizedSearchCV(logreg, params, cv=kf)
+# Create a TfidfVectorizer: tfidf
+tfidf = TfidfVectorizer()
 
-# Fit the data to the model
-logreg_cv.fit(X_train, y_train)
+# Apply fit_transform to document: csr_mat
+csr_mat = tfidf.fit_transform(documents)
 
-# Print the tuned parameters and score
-print("Tuned Logistic Regression Parameters: {}".format(logreg_cv.best_params_))
-print("Tuned Logistic Regression Best Accuracy Score: {}".format(logreg_cv.best_score_))
+# Print result of toarray() method
+print(csr_mat.toarray())
+
+# Get the words: words
+words = tfidf.get_feature_names()
+
+# Print words
+print(words)
+
+```
+
+## chapter 3-8
+
+Clustering Wikipedia part I
+
+```python
+# Perform the necessary imports
+from sklearn.decomposition import TruncatedSVD
+from sklearn.cluster import KMeans
+from sklearn.pipeline import make_pipeline
+
+# Create a TruncatedSVD instance: svd
+svd = TruncatedSVD(n_components=50)
+
+# Create a KMeans instance: kmeans
+kmeans = KMeans(n_clusters=6)
+
+# Create a pipeline: pipeline
+pipeline = make_pipeline(svd, kmeans)
+
+```
+
+## chapter 3-9
+
+Clustering Wikipedia part II
+
+```python
+# Import pandas
+import pandas as pd
+
+# Fit the pipeline to articles
+pipeline.fit(articles)
+
+# Calculate the cluster labels: labels
+labels = pipeline.predict(articles)
+
+# Create a DataFrame aligning labels and titles: df
+df = pd.DataFrame({'label': labels, 'article': titles})
+
+# Display df sorted by cluster label
+print(df.sort_values('label'))
 
 ```
