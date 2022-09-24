@@ -139,5 +139,5 @@ plt.hist(line_num_words)
 plt.show()
 
 ```
-image.png
+![image](https://user-images.githubusercontent.com/109948144/192087954-debe7cbc-8642-4d04-9870-2e9f13482ce8.png)
 
