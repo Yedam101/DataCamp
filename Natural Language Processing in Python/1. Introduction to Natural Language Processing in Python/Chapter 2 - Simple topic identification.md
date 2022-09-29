@@ -1,42 +1,50 @@
 ## chapter 2-1
 
-Creating features
+Building a Counter with bag-of-words
 
 ```python
-import numpy as np
+# Import Counter
+from collections import Counter
 
-# Create X from the radio column's values
-X = sales_df["radio"].values
+# Tokenize the article: tokens
+tokens = word_tokenize(article)
 
-# Create y from the sales column's values
-y = sales_df["sales"].values
+# Convert the tokens into lowercase: lower_tokens
+lower_tokens = [t.lower() for t in tokens]
 
-# Reshape X
-X = X.reshape(-1,1)
+# Create a Counter with the lowercase tokens: bow_simple
+bow_simple = Counter(lower_tokens)
 
-# Check the shape of the features and targets
-print(X.shape, y.shape)
+# Print the 10 most common tokens
+print(bow_simple.most_common(10))
 
 ```
 
 ## chapter 2-2
 
-Building a linear regression model
+Text preprocessing practice
 
 ```python
-# Import LinearRegression
-from sklearn.linear_model import LinearRegression
+# Import WordNetLemmatizer
+from nltk.stem import WordNetLemmatizer
 
-# Create the model
-reg = LinearRegression()
+# Retain alphabetic words: alpha_only
+alpha_only = [t for t in lower_tokens if t.isalpha()]
 
-# Fit the model to the data
-reg.fit(X, y)
+# Remove all stop words: no_stops
+no_stops = [t for t in alpha_only if t not in english_stops]
 
-# Make predictions
-predictions = reg.predict(X)
+# Instantiate the WordNetLemmatizer
+wordnet_lemmatizer = WordNetLemmatizer()
 
-print(predictions[:5])
+# Lemmatize all tokens into a new list: lemmatized
+lemmatized = [wordnet_lemmatizer.lemmatize(t) for t in no_stops]
+
+# Create the bag-of-words: bow
+bow = Counter(lemmatized)
+
+# Print the 10 most common tokens
+print(bow.most_common(10))
 
 ```
 
