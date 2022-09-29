@@ -50,46 +50,56 @@ print(bow.most_common(10))
 
 ## chapter 2-3
 
-Visualizing a linear regression model
+Creating and querying a corpus with gensim
 
 ```python
-# Import matplotlib.pyplot
-import matplotlib.pyplot as plt
+# Import Dictionary
+from gensim.corpora.dictionary import Dictionary
 
-# Create scatter plot
-plt.scatter(X, y, color="b")
+# Create a Dictionary from the articles: dictionary
+dictionary = Dictionary(articles)
 
-# Create line plot
-plt.plot(X, predictions, color="r")
-plt.xlabel("Radio Expenditure ($)")
-plt.ylabel("Sales ($)")
+# Select the id for "computer": computer_id
+computer_id = dictionary.token2id.get("computer")
 
-# Display the plot
-plt.show()
+# Use computer_id with the dictionary to print the word
+print(dictionary.get(computer_id))
+
+# Create a MmCorpus: corpus
+corpus = [dictionary.doc2bow(article) for article in articles]
+
+# Print the first 10 word ids with their frequency counts from the fifth document
+print(corpus[4][:10])
 
 ```
 
 ## chapter 2-4
 
-Fit and predict for regression
+Gensim bag-of-words
 
 ```python
-# Create X and y arrays
-X = sales_df.drop("sales", axis=1).values
-y = sales_df["sales"].values
+# Save the fifth document: doc
+doc = corpus[4]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+# Sort the doc for frequency: bow_doc
+bow_doc = sorted(doc, key=lambda w: w[1], reverse=True)
 
-# Instantiate the model
-reg = LinearRegression()
+# Print the top 5 words of the document alongside the count
+for word_id, word_count in bow_doc[:5]:
+    print(dictionary.get(word_id), word_count)
+    
+# Create the defaultdict: total_word_count
+total_word_count = defaultdict(int)
+for word_id, word_count in itertools.chain.from_iterable(corpus):
+    total_word_count[word_id] += word_count
+    
+# Create a sorted list from the defaultdict: sorted_word_count
+sorted_word_count = sorted(total_word_count.items(), key=lambda w: w[1], reverse=True) 
 
-# Fit the model to the data
-reg.fit(X_train, y_train)
-
-# Make predictions
-y_pred = reg.predict(X_test)
-print("Predictions: {}, Actual Values: {}".format(y_pred[:2], y_test[:2]))
-
+# Print the top 5 words across all documents alongside the count
+for word_id, word_count in sorted_word_count[:5]:
+    print(dictionary.get(word_id), word_count)
+    
 ```
 
 ## chapter 2-5
