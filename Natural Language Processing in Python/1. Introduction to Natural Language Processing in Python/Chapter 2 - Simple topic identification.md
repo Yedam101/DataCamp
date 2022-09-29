@@ -99,109 +99,28 @@ sorted_word_count = sorted(total_word_count.items(), key=lambda w: w[1], reverse
 # Print the top 5 words across all documents alongside the count
 for word_id, word_count in sorted_word_count[:5]:
     print(dictionary.get(word_id), word_count)
-    
+
 ```
 
 ## chapter 2-5
 
-Regression performance
+Tf-idf with Wikipedia
 
 ```python
-# Import mean_squared_error
-from sklearn.metrics import mean_squared_error
+# Create a new TfidfModel using the corpus: tfidf
+tfidf = TfidfModel(corpus)
 
-# Compute R-squared
-r_squared = reg.score(X_test, y_test)
+# Calculate the tfidf weights of doc: tfidf_weights
+tfidf_weights = tfidf[doc]
 
-# Compute RMSE
-rmse = mean_squared_error(y_test, y_pred, squared=False)
+# Print the first five weights
+print(tfidf_weights[:5])
 
-# Print the metrics
-print("R^2: {}".format(r_squared))
-print("RMSE: {}".format(rmse))
+# Sort the weights from highest to lowest: sorted_tfidf_weights
+sorted_tfidf_weights = sorted(tfidf_weights, key=lambda w: w[1], reverse=True)
 
-```
-
-## chapter 2-6
-
-Cross-validation for R-squared
-
-```python
-# Import the necessary modules
-from sklearn.model_selection import cross_val_score, KFold
-
-# Create a KFold object
-kf = KFold(n_splits=6, shuffle=True, random_state=5)
-
-reg = LinearRegression()
-
-# Compute 6-fold cross-validation scores
-cv_scores = cross_val_score(reg, X, y, cv=kf)
-
-# Print scores
-print(cv_scores)
-
-```
-
-## chapter 2-7
-
-Analyzing cross-validation metrics
-
-```python
-# Print the mean
-print(np.mean(cv_results))
-
-# Print the standard deviation
-print(np.std(cv_results))
-
-# Print the 95% confidence interval
-print(np.quantile(cv_results, [0.025, 0.975]))
-
-```
-
-## chapter 2-8
-
-Regularized regression: Ridge
-
-```python
-# Import Ridge
-from sklearn.linear_model import Ridge
-alphas = [0.1, 1.0, 10.0, 100.0, 1000.0, 10000.0]
-ridge_scores = []
-for alpha in alphas:
-  
-  # Create a Ridge regression model
-  ridge = Ridge(alpha=alpha)
-  
-  # Fit the data
-  ridge.fit(X_train, y_train)
-  
-  # Obtain R-squared
-  score = ridge.score(X_test, y_test)
-  ridge_scores.append(score)
-print(ridge_scores)
-
-```
-
-## chapter 2-9
-
-Lasso regression for feature importances
-
-```python
-# Import Lasso
-from sklearn.linear_model import Lasso
-
-# Instantiate a lasso regression model
-lasso = Lasso(alpha=0.3)
-
-# Fit the model to the data
-lasso.fit(X, y)
-
-# Compute and print the coefficients
-lasso_coef = lasso.fit(X, y).coef_
-print(lasso_coef)
-plt.bar(sales_columns, lasso_coef)
-plt.xticks(rotation=45)
-plt.show()
+# Print the top 5 weighted words
+for term_id, weight in sorted_tfidf_weights[:5]:
+    print(dictionary.get(term_id), weight)
 
 ```
